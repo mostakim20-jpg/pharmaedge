@@ -639,9 +639,12 @@ Return ONLY valid JSON, no markdown:
       body: JSON.stringify({ model:"claude-sonnet-4-6", max_tokens:900, messages:[{role:"user",content:prompt}] })
     });
     const data = await res.json();
-    const raw = data.content[0].text.trim()
-      .replace(/^```json[\s\S]*?\n/,'').replace(/^```\s*/,'').replace(/\n?```$/,'').trim();
-    const lesson = JSON.parse(raw);
+    const rawText = data.content[0].text.trim();
+    // Strip any markdown code fences
+    const cleanText = rawText.replace(/^```[a-z]*\n?/,'').replace(/\n?```$/,'').trim();
+    // Find JSON object within the text
+    const jsonMatch = cleanText.match(/\{[\s\S]*\}/);
+    const lesson = JSON.parse(jsonMatch ? jsonMatch[0] : cleanText);
     S.lesson = lesson;
 
     document.getElementById('dayBadge').textContent  = `Day ${item.d} · ${item.w.split('—')[0].trim()}`;
